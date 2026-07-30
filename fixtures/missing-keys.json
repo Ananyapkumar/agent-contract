@@ -1,0 +1,13 @@
+{
+  "output": "{\"customer_name\": \"Sneha Iyer\", \"issue_summary\": \"Requesting a refund for a duplicate charge on the October invoice.\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "get_customer_record",
+        "toolInput": { "email": "sneha.iyer@example.com" },
+        "log": "Retrieving the customer record."
+      },
+      "observation": "{\"name\": \"Sneha Iyer\", \"plan\": \"pro\", \"mrr\": 2400}"
+    }
+  ]
+}

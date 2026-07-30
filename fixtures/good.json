@@ -1,0 +1,13 @@
+{
+  "output": "{\"customer_name\": \"Priya Menon\", \"issue_summary\": \"Charged twice for the November Pro subscription renewal.\", \"priority\": \"high\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "get_customer_record",
+        "toolInput": { "email": "priya.menon@example.com" },
+        "log": "I need to look up this customer's account before summarising."
+      },
+      "observation": "{\"name\": \"Priya Menon\", \"plan\": \"pro\", \"mrr\": 2400}"
+    }
+  ]
+}

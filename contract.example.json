@@ -1,0 +1,7 @@
+{
+  "format": "json",
+  "requiredKeys": ["customer_name", "issue_summary", "priority"],
+  "mustCallTools": ["get_customer_record"],
+  "maxLength": 2000,
+  "forbidPlaceholders": true
+}

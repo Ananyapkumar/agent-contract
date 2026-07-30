@@ -1,0 +1,12 @@
+{
+  "name": "agent-contract",
+  "version": "0.1.0",
+  "description": "Deterministic output checks for AI agents in n8n. Catches agents that succeed and are wrong.",
+  "main": "check.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node run-fixtures.js"
+  },
+  "keywords": ["n8n", "ai-agent", "validation", "llm", "automation"],
+  "license": "MIT"
+}

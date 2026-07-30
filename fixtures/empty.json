@@ -1,0 +1,13 @@
+{
+  "output": "   \n  ",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "get_customer_record",
+        "toolInput": { "email": "unknown@example.com" },
+        "log": "Looking up the customer."
+      },
+      "observation": "Error: no record found"
+    }
+  ]
+}

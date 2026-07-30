@@ -1,0 +1,13 @@
+{
+  "output": "{\"customer_name\": \"Rahul Nair\", \"issue_summary\": \"Cannot log in after completing a password reset.\", \"priority\": \"medium\",}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "get_customer_record",
+        "toolInput": { "email": "rahul.nair@example.com" },
+        "log": "Fetching the account record."
+      },
+      "observation": "{\"name\": \"Rahul Nair\", \"plan\": \"starter\", \"mrr\": 800}"
+    }
+  ]
+}
