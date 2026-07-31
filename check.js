@@ -74,6 +74,44 @@ const CHECKS = [
       return null;
     },
   },
+
+  {
+    name: 'validJson',
+    run(ctx) {
+      // Only applies when the contract actually asked for JSON.
+      if (ctx.contract.format !== 'json') return null;
+
+      // Empty output is isEmpty's job. Stay quiet.
+      if (ctx.trimmed.length === 0) return null;
+
+      if (ctx.parseError !== null) {
+        return `Expected JSON but parsing failed: ${ctx.parseError}`;
+      }
+      if (typeof ctx.parsed !== 'object' || ctx.parsed === null || Array.isArray(ctx.parsed)) {
+        return 'Expected a JSON object at the top level.';
+      }
+      return null;
+    },
+  },
+
+  {
+    name: 'requiredKeys',
+    run(ctx) {
+      const required = ctx.contract.requiredKeys || [];
+      if (required.length === 0) return null;
+
+      // If it did not parse, that is validJson's failure to report.
+      // Reporting "3 keys missing" on top would send the user chasing
+      // the wrong problem. One root cause, one message.
+      if (ctx.parsed === null || typeof ctx.parsed !== 'object') return null;
+
+      const missing = required.filter((key) => !(key in ctx.parsed));
+      if (missing.length > 0) {
+        return `Missing required key(s): ${missing.join(', ')}`;
+      }
+      return null;
+    },
+  },
 ];
 
 // =====================================================================

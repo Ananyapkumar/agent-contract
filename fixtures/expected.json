@@ -3,7 +3,7 @@
 
   "good.json": [],
   "empty.json": ["isEmpty"],
-  "refusal.json": ["isRefusal", "validJson", "requiredKeys", "phantomTool"],
+  "refusal.json": ["isRefusal", "validJson", "phantomTool"],
   "malformed.json": ["validJson"],
   "missing-keys.json": ["requiredKeys"],
   "phantom-tool.json": ["phantomTool"]
