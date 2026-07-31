@@ -51,6 +51,15 @@ const REFUSAL_PATTERNS = [
   /\bas an ai\b/i,
 ];
 
+// Anchored at the START of the observation on purpose. A customer
+// record might legitimately contain the word "error" somewhere in a
+// support ticket body; a tool failure announces itself up front.
+function looksLikeError(observation) {
+  if (typeof observation !== 'string') return false;
+  if (observation.trim().length === 0) return true;
+  return /^\s*(error|exception|failed|traceback)\b/i.test(observation);
+}
+
 const CHECKS = [
   {
     name: 'isEmpty',
@@ -109,6 +118,47 @@ const CHECKS = [
       if (missing.length > 0) {
         return `Missing required key(s): ${missing.join(', ')}`;
       }
+      return null;
+    },
+  },
+
+  {
+    name: 'phantomTool',
+    run(ctx) {
+      const required = ctx.contract.mustCallTools || [];
+      if (required.length === 0) return null;
+
+      // Which tools did the agent ACTUALLY invoke?
+      const called = ctx.steps
+        .map((s) => s && s.action && s.action.tool)
+        .filter(Boolean);
+
+      // Case 1: the tool was never invoked at all.
+      // The agent produced an answer without the data it needed,
+      // which means it invented it.
+      const never = required.filter((tool) => !called.includes(tool));
+      if (never.length > 0) {
+        return `Required tool(s) never called: ${never.join(', ')}. `
+             + `The agent produced output without the data it claims to have used.`;
+      }
+
+      // Case 2: the tool WAS invoked but returned an error, and the
+      // agent carried on regardless. n8n does not fail the execution
+      // for this, so it is invisible in the run history.
+      const errored = ctx.steps
+        .filter(
+          (s) =>
+            s && s.action &&
+            required.includes(s.action.tool) &&
+            looksLikeError(s.observation)
+        )
+        .map((s) => s.action.tool);
+
+      if (errored.length > 0) {
+        return `Required tool(s) returned an error but the agent answered anyway: `
+             + `${errored.join(', ')}.`;
+      }
+
       return null;
     },
   },

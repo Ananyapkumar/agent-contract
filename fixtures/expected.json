@@ -2,7 +2,7 @@
   "_comment": "Which checks SHOULD fail for each fixture. This is the spec. Every check we write gets measured against this file.",
 
   "good.json": [],
-  "empty.json": ["isEmpty"],
+  "empty.json": ["isEmpty", "phantomTool"],
   "refusal.json": ["isRefusal", "validJson", "phantomTool"],
   "malformed.json": ["validJson"],
   "missing-keys.json": ["requiredKeys"],
