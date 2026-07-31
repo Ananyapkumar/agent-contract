@@ -1,0 +1,13 @@
+{
+  "output": "{\"customer_name\": \"Meera Joshi\", \"issue_summary\": \"Customer was charged for three separate subscription renewals within the same billing cycle and is now requesting a full refund of the duplicate\", \"priority\": \"high\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "get_customer_record",
+        "toolInput": { "email": "meera.joshi@example.com" },
+        "log": "Retrieving the customer record."
+      },
+      "observation": "{\"name\": \"Meera Joshi\", \"plan\": \"enterprise\", \"mrr\": 9600}"
+    }
+  ]
+}

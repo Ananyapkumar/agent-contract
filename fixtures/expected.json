@@ -6,5 +6,8 @@
   "refusal.json": ["isRefusal", "validJson", "phantomTool"],
   "malformed.json": ["validJson"],
   "missing-keys.json": ["requiredKeys"],
-  "phantom-tool.json": ["phantomTool"]
+  "phantom-tool.json": ["phantomTool"],
+  "placeholder.json": ["placeholderLeak"],
+  "truncated.json": ["truncation"],
+  "echo.json": ["promptEcho"]
 }

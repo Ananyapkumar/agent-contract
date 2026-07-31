@@ -1,0 +1,13 @@
+{
+  "output": "{\"customer_name\": \"[insert customer name]\", \"issue_summary\": \"Customer reports a billing discrepancy on the October invoice.\", \"priority\": \"medium\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "get_customer_record",
+        "toolInput": { "email": "kavya.rao@example.com" },
+        "log": "Fetching the account record."
+      },
+      "observation": "{\"name\": \"Kavya Rao\", \"plan\": \"pro\", \"mrr\": 2400}"
+    }
+  ]
+}

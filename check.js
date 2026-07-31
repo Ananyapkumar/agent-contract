@@ -26,6 +26,7 @@ function buildContext(agentOutput, contract) {
     trimmed,      // whitespace stripped
     parsed,       // the JSON object, or null if it did not parse
     parseError,   // why it did not parse
+    input: typeof agentOutput.input === 'string' ? agentOutput.input.trim() : '',
     steps: Array.isArray(agentOutput.intermediateSteps)
       ? agentOutput.intermediateSteps
       : [],
@@ -50,6 +51,47 @@ const REFUSAL_PATTERNS = [
   /\bi don'?t have access\b/i,
   /\bas an ai\b/i,
 ];
+
+// Placeholder patterns require bracket context or ALL-CAPS on purpose.
+// A customer can legitimately write "my todo list"; nobody legitimately
+// writes "[insert name]" in a support ticket.
+const PLACEHOLDER_PATTERNS = [
+  /\[\s*(insert|your|enter|add|name|company|placeholder|xxx)/i,
+  /\{\{\s*\w+\s*\}\}/,          // unrendered template variable
+  /\b(lorem ipsum)\b/i,
+  /\b(your_name_here|placeholder_text|fill_me_in)\b/i,
+  /\bTODO\b/,                    // case-sensitive: "todo" in prose is fine
+];
+
+const TRUNCATION_MIN_LENGTH = 40;
+const ECHO_THRESHOLD = 0.8;
+
+// Pull out the human-readable strings worth inspecting. For a JSON
+// contract that is the string values inside the object; otherwise it is
+// the raw text itself.
+function textValues(ctx) {
+  if (ctx.parsed !== null && typeof ctx.parsed === 'object') {
+    return Object.values(ctx.parsed).filter((v) => typeof v === 'string');
+  }
+  return ctx.trimmed.length > 0 ? [ctx.trimmed] : [];
+}
+
+function endsCleanly(text) {
+  return /[.!?:;"')\]}]\s*$/.test(text);
+}
+
+// Jaccard similarity on lowercased word sets. Crude, deterministic, and
+// entirely sufficient for "did it hand me my own prompt back".
+function similarity(a, b) {
+  const words = (s) =>
+    new Set(s.toLowerCase().match(/[a-z0-9']+/g) || []);
+  const A = words(a);
+  const B = words(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let shared = 0;
+  for (const w of A) if (B.has(w)) shared++;
+  return shared / (A.size + B.size - shared);
+}
 
 // Anchored at the START of the observation on purpose. A customer
 // record might legitimately contain the word "error" somewhere in a
@@ -159,6 +201,52 @@ const CHECKS = [
              + `${errored.join(', ')}.`;
       }
 
+      return null;
+    },
+  },
+
+  {
+    name: 'placeholderLeak',
+    run(ctx) {
+      if (ctx.contract.forbidPlaceholders === false) return null;
+      const hit = PLACEHOLDER_PATTERNS.find((p) => p.test(ctx.trimmed));
+      if (hit) {
+        return `Template placeholder left in output (matched ${hit}). `
+             + `The agent shipped scaffolding instead of real content.`;
+      }
+      return null;
+    },
+  },
+
+  {
+    name: 'truncation',
+    run(ctx) {
+      // Truncated JSON does not parse, so validJson already owns that case.
+      if (ctx.parseError !== null) return null;
+
+      const cut = textValues(ctx).filter(
+        (s) => s.length > TRUNCATION_MIN_LENGTH && !endsCleanly(s)
+      );
+      if (cut.length > 0) {
+        return `Output appears cut off mid-sentence: "...${cut[0].slice(-45)}"`;
+      }
+      return null;
+    },
+  },
+
+  {
+    name: 'promptEcho',
+    run(ctx) {
+      // No-op unless the caller supplied the original input.
+      if (!ctx.input || ctx.input.length < 20) return null;
+
+      for (const value of textValues(ctx)) {
+        if (value.length < 20) continue;
+        if (similarity(ctx.input, value) >= ECHO_THRESHOLD) {
+          return `Output substantially repeats the input rather than answering it `
+               + `(${Math.round(similarity(ctx.input, value) * 100)}% word overlap).`;
+        }
+      }
       return null;
     },
   },

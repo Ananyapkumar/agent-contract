@@ -1,0 +1,14 @@
+{
+  "input": "Customer reports a duplicate charge on the October invoice and requests a refund.",
+  "output": "{\"customer_name\": \"Unknown\", \"issue_summary\": \"Customer reports a duplicate charge on the October invoice and requests a refund.\", \"priority\": \"medium\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "get_customer_record",
+        "toolInput": { "email": "unknown@example.com" },
+        "log": "Looking up the account."
+      },
+      "observation": "{\"name\": \"Not found\", \"plan\": \"none\"}"
+    }
+  ]
+}
