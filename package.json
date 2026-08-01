@@ -5,8 +5,15 @@
   "main": "check.js",
   "type": "commonjs",
   "scripts": {
-    "test": "node run-fixtures.js"
+    "test": "node run-fixtures.js && node verify-build.js",
+    "build": "node build-code-node.js"
   },
-  "keywords": ["n8n", "ai-agent", "validation", "llm", "automation"],
+  "keywords": [
+    "n8n",
+    "ai-agent",
+    "validation",
+    "llm",
+    "automation"
+  ],
   "license": "MIT"
 }
