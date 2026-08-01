@@ -1,0 +1,7 @@
+{
+  "format": "json",
+  "requiredKeys": ["question", "answer"],
+  "mustCallTools": ["calculator"],
+  "maxLength": 2000,
+  "forbidPlaceholders": true
+}

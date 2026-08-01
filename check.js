@@ -76,8 +76,14 @@ function textValues(ctx) {
   return ctx.trimmed.length > 0 ? [ctx.trimmed] : [];
 }
 
+// A digit is a legitimate ending. Real output finishes on numbers
+// constantly: calculations, invoice totals, IDs, dates, percentages.
+// Requiring terminal punctuation flagged "= 199892" as truncated,
+// which is a false positive found against live n8n output.
+// Truncation looks like stopping mid-word or mid-clause, so we treat
+// a trailing letter as the signal instead.
 function endsCleanly(text) {
-  return /[.!?:;"')\]}]\s*$/.test(text);
+  return /[.!?:;"')\]}0-9%]\s*$/.test(text);
 }
 
 // Jaccard similarity on lowercased word sets. Crude, deterministic, and

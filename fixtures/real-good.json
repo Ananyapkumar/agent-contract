@@ -1,0 +1,4 @@
+{
+  "_source": "Captured from n8n 2026-08-01. Same agent. This fixture is used with a contract that has no mustCallTools requirement, so it represents a valid unconstrained response.",
+  "output": "{\"question\": \"847 * 236\", \"answer\": 199892, \"method\": \"847 * 236 = 847 * (200 + 30 + 6) = 169400 + 25410 + 5082 = 199892\"}"
+}

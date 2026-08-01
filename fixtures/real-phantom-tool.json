@@ -1,0 +1,4 @@
+{
+  "_source": "Captured from n8n 2026-08-01. Gemini Flash agent with a Calculator tool attached. Prompt explicitly said: 'Use the calculator tool. Do not calculate it yourself.' The agent ignored the tool, computed 8472913 * 23641 internally, and returned the CORRECT answer. n8n reported the execution as successful. Note: intermediateSteps is absent entirely, not an empty array.",
+  "output": "{\"question\": \"8472913 * 23641\", \"answer\": 200308136233}"
+}

@@ -1,5 +1,5 @@
 {
-  "_comment": "Which checks SHOULD fail for each fixture. This is the spec. Every check we write gets measured against this file.",
+  "_comment": "The spec. Each fixture maps to the checks that SHOULD fail. Optional 'contract' key selects a non-default contract file.",
 
   "good.json": [],
   "empty.json": ["isEmpty", "phantomTool"],
@@ -9,5 +9,14 @@
   "phantom-tool.json": ["phantomTool"],
   "placeholder.json": ["placeholderLeak"],
   "truncated.json": ["truncation"],
-  "echo.json": ["promptEcho"]
+  "echo.json": ["promptEcho"],
+
+  "real-phantom-tool.json": {
+    "contract": "contract.calculator.json",
+    "fails": ["phantomTool"]
+  },
+  "real-good.json": {
+    "contract": "contract.calculator-notools.json",
+    "fails": []
+  }
 }

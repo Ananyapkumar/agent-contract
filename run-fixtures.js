@@ -17,13 +17,20 @@ console.log('='.repeat(64));
 let passed = 0;
 let failed = 0;
 
-for (const [file, allExpected] of Object.entries(expected)) {
+for (const [file, spec] of Object.entries(expected)) {
   if (file.startsWith('_')) continue; // skip the _comment key
+
+  // A spec is either a plain array of check names, or an object that
+  // also names a different contract file for this fixture.
+  const allExpected = Array.isArray(spec) ? spec : spec.fails;
+  const activeContract = Array.isArray(spec) || !spec.contract
+    ? contract
+    : JSON.parse(fs.readFileSync('./' + spec.contract, 'utf8'));
 
   const data = JSON.parse(
     fs.readFileSync(path.join('fixtures', file), 'utf8')
   );
-  const result = checkOutput(data, contract);
+  const result = checkOutput(data, activeContract);
 
   const want = allExpected.filter((n) => implemented.includes(n)).sort();
   const got = result.failures.map((f) => f.check).sort();
