@@ -16,7 +16,9 @@ The automation didn't crash. It just quietly did nothing.
 
 AI agents fail the same way, but more often and more convincingly. n8n marks a node successful if its code didn't throw an exception. For a normal node that's a fine test — a broken HTTP request throws, so "didn't crash" and "worked" mean the same thing. For an LLM node they stop meaning the same thing, because a model always returns text, and text is always a valid return value.
 
-So when your agent returns `I'm sorry, I don't have access to that information`, the node goes green. When it invents a customer's plan tier instead of looking it up, the node goes green. That output flows downstream into your CRM, your email send, your webhook — and nothing in the run history suggests anything went wrong.
+So when your agent returns `I'm sorry, I don't have access to that information`, the node goes green. When it invents a customer's plan tier instead of looking it up, the node goes green. That output flows downstream into your CRM, your email send, your webhook, and nothing in the run history suggests anything went wrong.
+
+Worth being precise here: n8n's behaviour with tool failures isn't uniform. Some tool errors do fail the workflow, and there's an [open issue](https://github.com/n8n-io/n8n/issues/24042) about errors killing the run instead of being handed back to the agent. What I ran into was different, and it's the case below.
 
 ## I found this on my first test run
 
@@ -49,7 +51,7 @@ If this were a bug, someone would fix it. It isn't, so it needs a guard.
 | `truncation` | Output cut off by the token ceiling |
 | `promptEcho` | The agent handed your prompt back |
 
-`phantomTool` also catches the subtler case: the tool *was* called, returned an error, and the agent answered anyway. n8n reports that as a successful execution.
+`phantomTool` also covers the case where the tool ran, returned an error, and the agent answered anyway — when that error doesn't stop the workflow.
 
 ## Install
 
