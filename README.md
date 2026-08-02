@@ -4,17 +4,17 @@
 
 ![The Code node catching a phantom tool call in a live n8n workflow](docs/verified-in-n8n.png)
 
-*n8n reports the step as successful. The output is unusable. Both are true.*
+*n8n says the step succeeded. The output isn't usable. Both of those are true at the same time.*
 
 ---
 
 ## The problem
 
-Years ago I helped run an automation that fed Google Form responses through Zapier into a Slack channel, so the operations team knew what to work on. For a stretch of time, nothing arrived in Slack. Zapier said every run had completed. There was no error anywhere, no alert, no failed step to investigate — we found out because a person eventually noticed the messages had stopped coming.
+About a year ago I worked on an automation that pushed Google Form responses through Zapier into Slack, so the operations team knew what needed doing. For a while, nothing showed up in Slack. Zapier said every run completed. No error, no alert, no failed step — we only caught it because someone noticed the messages had stopped.
 
-The automation hadn't crashed. It had succeeded at doing nothing.
+The automation didn't crash. It just quietly did nothing.
 
-AI agents fail the same way, but more often and more convincingly. n8n marks a node successful if the node's code didn't throw an exception. That's a test of *mechanical* success — did the machinery run. For a deterministic node, mechanical and useful collapse into the same thing: a broken HTTP request throws. For an LLM node they come apart completely, because a model always returns text, and text is always a valid return value.
+AI agents fail the same way, but more often and more convincingly. n8n marks a node successful if its code didn't throw an exception. For a normal node that's a fine test — a broken HTTP request throws, so "didn't crash" and "worked" mean the same thing. For an LLM node they stop meaning the same thing, because a model always returns text, and text is always a valid return value.
 
 So when your agent returns `I'm sorry, I don't have access to that information`, the node goes green. When it invents a customer's plan tier instead of looking it up, the node goes green. That output flows downstream into your CRM, your email send, your webhook — and nothing in the run history suggests anything went wrong.
 
@@ -34,7 +34,7 @@ The answer is correct. The node was green. `intermediateSteps` was absent entire
 
 My first thought was that something was broken: a misconfiguration, a bug, the agent not reading its instructions. It wasn't. The agent behaved exactly as designed. Language models decide for themselves whether a tool is worth using, and this one decided it could do the maths. **The system working normally produced a result I couldn't trust.**
 
-That's the gap this repo fills. If it were a bug, someone would fix it. It isn't, so it needs a guard.
+If this were a bug, someone would fix it. It isn't, so it needs a guard.
 
 ## What it checks
 
@@ -94,13 +94,13 @@ Because then you have two things that can be confidently wrong instead of one.
 
 A judge model costs money on every run, adds latency, and can hallucinate its own verdict. Worse, it fails *unpredictably* — the same input can pass on Tuesday and fail on Wednesday.
 
-Every check here is plain string and JSON logic. It runs offline, in milliseconds, at zero cost, and gives the same verdict on the same input forever. That narrowness is the product: a tool that's always right about a small question is more useful than one that's usually right about a large one, because the second kind gets deleted the first time it cries wolf.
+Every check here is plain string and JSON logic. It runs offline, in milliseconds, at zero cost, and gives the same verdict on the same input every time. The narrow scope is deliberate. I'd rather have something that's always right about a small question than something that's usually right about a big one, because the second kind gets switched off the first time it's wrong.
 
 ## False positives are the real enemy
 
-A missed failure costs you one bad record. A false positive gets the checker removed from the workflow — and a removed checker catches nothing, ever again.
+If this misses a bad output, you get one bad record. If it flags a good one, someone deletes the node — and then it catches nothing at all.
 
-So every pattern is deliberately narrow. Refusal detection requires a first-person subject, because a support ticket reading *"Cannot log in after password reset"* is a customer describing their problem, not a model refusing.
+So the patterns are kept narrow. Refusal detection needs a first-person subject, because a support ticket that says *"Cannot log in after password reset"* is a customer describing their problem, not a model refusing to help.
 
 I found a real one while testing against live output. The `truncation` check flagged this as cut off:
 
@@ -110,7 +110,7 @@ I found a real one while testing against live output. The `truncation` check fla
 
 Complete, correct, and ending in a digit. My rule assumed prose always ends in punctuation — but real agent output ends in numbers constantly: totals, IDs, dates, percentages. Every fixture I'd written by hand was a tidy English sentence, so nothing in my invented test set exposed it.
 
-Live data found it on the first run. The rule now accepts digits as a clean ending, and there's still a fixture proving genuine truncation is caught.
+Real output caught it on the first run. The rule now accepts digits as a valid ending, and there's still a fixture covering actual truncation.
 
 ## Tests
 
@@ -130,7 +130,7 @@ Regenerates `n8n-code-node.js` from `check.js`. The generated file is never edit
 
 v0.2.0. All eight checks implemented and tested. Verified end-to-end in a live n8n workflow.
 
-Issues and pull requests welcome — particularly real agent outputs that break a check. Those are worth more than feature requests.
+Issues and PRs welcome. If you have real agent output that breaks one of these checks, that's the most useful thing you could send me.
 
 ## License
 
