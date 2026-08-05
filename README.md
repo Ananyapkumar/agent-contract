@@ -140,7 +140,9 @@ Regenerates `n8n-code-node.js` from `check.js`. The generated file is never edit
 
 ## Status
 
-v0.2.0. All eight checks implemented and tested. Verified end-to-end in a live n8n workflow.
+v0.3.0. Nine checks implemented and tested against 14 fixtures, two of them captured from live n8n runs. Verified end-to-end in a real workflow.
+
+The `emptyCollection` check and the `throwOnFail` option came from feedback in the n8n community thread linked above.
 
 Issues and PRs welcome. If you have real agent output that breaks one of these checks, that's the most useful thing you could send me.
 
