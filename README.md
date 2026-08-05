@@ -63,6 +63,7 @@ const contract = {
   format: 'json',
   requiredKeys: ['customer_name', 'priority'],
   mustCallTools: ['get_customer_record'],
+  collectionTools: [],
   forbidPlaceholders: true,
 };
 ```
@@ -129,7 +130,7 @@ Real output caught it on the first run. The rule now accepts digits as a valid e
 npm test
 ```
 
-Runs two suites. The first checks all eight checks against 11 fixtures — nine written by hand, two captured from a live n8n agent. The second executes the *generated* Code node in a simulated sandbox to confirm it behaves identically to the tested source, so the shipped file and the tested file can't silently drift apart.
+Runs two suites. The first runs all nine checks against 14 fixtures — most written by hand, two captured from live n8n runs, and three covering the collection cases. The second executes the *generated* Code node in a simulated sandbox to confirm it behaves identically to the tested source, so the shipped file and the tested file can't silently drift apart.
 
 ```
 npm run build
