@@ -1,0 +1,14 @@
+{
+  "_source": "Control case for emptyCollection. Same tool, same contract, but it returned three rows. Must NOT fire, or the check is useless.",
+  "output": "{\"customer_name\": \"Divya Nair\", \"issue_summary\": \"Three recent orders found, most recent delayed in transit.\", \"priority\": \"medium\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "search_orders",
+        "toolInput": { "customer_id": "4471" },
+        "log": "Searching for the customer's recent orders."
+      },
+      "observation": "{\"status\": \"ok\", \"count\": 3, \"data\": [{\"id\": 1}, {\"id\": 2}, {\"id\": 3}]}"
+    }
+  ]
+}

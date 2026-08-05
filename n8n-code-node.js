@@ -15,8 +15,17 @@ const contract = {
   format: 'json',                                  // 'json' or 'text'
   requiredKeys: ['customer_name', 'priority'],     // fields you need
   mustCallTools: ['get_customer_record'],          // tools that MUST run
+  collectionTools: [],                             // tools that return lists
   forbidPlaceholders: true,
 };
+
+// Set true to make this node THROW when a check fails, so n8n marks the
+// execution as failed and your error workflow actually fires.
+//
+// Left false, this node stays green and you must branch on contractOk
+// with an IF node. That works, but it is a step people forget — and a
+// checker that fails silently has the same problem it was built to catch.
+const throwOnFail = false;
 
 // ---------------------------------------------------------------------
 // 2. THE CHECKS — no need to edit below this line.
@@ -118,6 +127,39 @@ function similarity(a, b) {
   let shared = 0;
   for (const w of A) if (B.has(w)) shared++;
   return shared / (A.size + B.size - shared);
+}
+
+// How many rows did a tool return? Returns null when the tool did not
+// say — we cannot count rows inside an opaque string, so the caller
+// stays quiet rather than guessing.
+//
+// Reads the { status, count, data } shape recommended by the n8n
+// community thread. A bare success flag is not enough here: a tool that
+// succeeded and returned nothing looks identical to one that succeeded
+// and returned ten rows unless it reports the count.
+function observedCount(observation) {
+  let obj = observation;
+
+  if (typeof observation === 'string') {
+    try {
+      obj = JSON.parse(observation);
+    } catch (e) {
+      return null; // opaque string, nothing to count
+    }
+  }
+
+  if (obj === null || typeof obj !== 'object') return null;
+
+  if (typeof obj.count === 'number') return obj.count;
+  if (Array.isArray(obj.data)) return obj.data.length;
+  if (Array.isArray(obj.results)) return obj.results.length;
+  if (Array.isArray(obj.rows)) return obj.rows.length;
+  if (Array.isArray(obj)) return obj.length;
+
+  // status: 'empty' is an explicit declaration of zero.
+  if (obj.status === 'empty') return 0;
+
+  return null;
 }
 
 // Anchored at the START of the observation on purpose. A customer
@@ -233,6 +275,35 @@ const CHECKS = [
   },
 
   {
+    name: 'emptyCollection',
+    run(ctx) {
+      // Only applies to tools the contract DECLARES as returning a
+      // collection. A generic "output was empty" rule would fire on
+      // every lookup that legitimately found nothing.
+      const declared = ctx.contract.collectionTools || [];
+      if (declared.length === 0) return null;
+
+      const empty = [];
+
+      for (const step of ctx.steps) {
+        if (!step || !step.action) continue;
+        if (!declared.includes(step.action.tool)) continue;
+
+        // null means the tool did not report a count. We cannot infer
+        // one from an opaque string, so we stay quiet rather than guess.
+        if (observedCount(step.observation) === 0) empty.push(step.action.tool);
+      }
+
+      if (empty.length > 0) {
+        return `Tool(s) returned zero rows but the agent answered anyway: `
+             + `${empty.join(', ')}. Zero can be legitimate — watch the rate `
+             + `rather than treating every occurrence as fatal.`;
+      }
+      return null;
+    },
+  },
+
+  {
     name: 'placeholderLeak',
     run(ctx) {
       if (ctx.contract.forbidPlaceholders === false) return null;
@@ -300,7 +371,7 @@ function checkOutput(agentOutput, contract) {
 // ---------------------------------------------------------------------
 // 3. RUN IT over every item coming from the agent.
 // ---------------------------------------------------------------------
-return $input.all().map((item) => {
+const checked = $input.all().map((item) => {
   const result = checkOutput(item.json, contract);
   return {
     json: {
@@ -310,3 +381,17 @@ return $input.all().map((item) => {
     },
   };
 });
+
+if (throwOnFail) {
+  const bad = checked.filter((i) => !i.json.contractOk);
+  if (bad.length > 0) {
+    const reasons = bad
+      .flatMap((i) => i.json.contractFailures.map((f) => f.check))
+      .join(', ');
+    throw new Error(
+      `Agent output failed contract on ${bad.length} item(s): ${reasons}`
+    );
+  }
+}
+
+return checked;

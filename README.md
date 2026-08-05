@@ -50,6 +50,7 @@ If this were a bug, someone would fix it. It isn't, so it needs a guard.
 | `placeholderLeak` | Template scaffolding shipped as real content |
 | `truncation` | Output cut off by the token ceiling |
 | `promptEcho` | The agent handed your prompt back |
+| `emptyCollection` | **A tool ran, succeeded, and returned zero rows** |
 
 `phantomTool` also covers the case where the tool ran, returned an error, and the agent answered anyway — when that error doesn't stop the workflow.
 
@@ -80,9 +81,17 @@ Every item passing through gains two fields:
 }
 ```
 
+### Making the error workflow actually fire
+
+By default this node stays green and you branch on `contractOk` with an IF node. That works, but it's a step people forget — and a checker that fails silently has the same problem it was built to catch.
+
+Set `throwOnFail = true` at the top and the node throws instead. n8n marks the execution as failed, and your error workflow fires without any extra wiring.
+
 Follow it with an IF node on `{{ $json.contractOk }}`. Route the false branch to a retry, a human review queue, or an alert — anything except silently dropping the item, which trades a visible bad record for an invisible missing one.
 
 ## What it does not do
+
+**It cannot tell you most kinds of wrong answer.** `emptyCollection` covers one narrow slice — a tool that returned nothing when it should have returned something — but that only works if the tool reports a count. Everything else is out of scope.
 
 **It cannot tell you whether the answer is correct.** Ask an agent `2 + 2` and it will pass both `4` and `5`. Both are well-formed. Checking correctness requires a model that understands the task, which is a different and much harder problem.
 

@@ -1,0 +1,14 @@
+{
+  "_source": "The tool returned a plain string with no count. We cannot know how many rows it found, so emptyCollection must STAY QUIET rather than guess. This is the dependency the community reply named: the check needs the tool to report a count.",
+  "output": "{\"customer_name\": \"Rohan Shetty\", \"issue_summary\": \"Order lookup returned results but the format was unstructured.\", \"priority\": \"low\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "search_orders",
+        "toolInput": { "customer_id": "9902" },
+        "log": "Searching for orders."
+      },
+      "observation": "Found some orders for this customer, see attached summary."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "format": "json",
+  "requiredKeys": ["customer_name", "issue_summary", "priority"],
+  "mustCallTools": ["search_orders"],
+  "collectionTools": ["search_orders"],
+  "forbidPlaceholders": true
+}

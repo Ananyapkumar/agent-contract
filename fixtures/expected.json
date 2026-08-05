@@ -18,5 +18,17 @@
   "real-good.json": {
     "contract": "contract.calculator-notools.json",
     "fails": []
+  },
+  "empty-collection.json": {
+    "contract": "contract.collections.json",
+    "fails": ["emptyCollection"]
+  },
+  "collection-with-rows.json": {
+    "contract": "contract.collections.json",
+    "fails": []
+  },
+  "collection-opaque.json": {
+    "contract": "contract.collections.json",
+    "fails": []
   }
 }

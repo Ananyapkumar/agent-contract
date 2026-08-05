@@ -30,8 +30,17 @@ const contract = {
   format: 'json',                                  // 'json' or 'text'
   requiredKeys: ['customer_name', 'priority'],     // fields you need
   mustCallTools: ['get_customer_record'],          // tools that MUST run
+  collectionTools: [],                             // tools that return lists
   forbidPlaceholders: true,
 };
+
+// Set true to make this node THROW when a check fails, so n8n marks the
+// execution as failed and your error workflow actually fires.
+//
+// Left false, this node stays green and you must branch on contractOk
+// with an IF node. That works, but it is a step people forget — and a
+// checker that fails silently has the same problem it was built to catch.
+const throwOnFail = false;
 
 // ---------------------------------------------------------------------
 // 2. THE CHECKS — no need to edit below this line.
@@ -42,7 +51,7 @@ const footer = `
 // ---------------------------------------------------------------------
 // 3. RUN IT over every item coming from the agent.
 // ---------------------------------------------------------------------
-return $input.all().map((item) => {
+const checked = $input.all().map((item) => {
   const result = checkOutput(item.json, contract);
   return {
     json: {
@@ -52,6 +61,20 @@ return $input.all().map((item) => {
     },
   };
 });
+
+if (throwOnFail) {
+  const bad = checked.filter((i) => !i.json.contractOk);
+  if (bad.length > 0) {
+    const reasons = bad
+      .flatMap((i) => i.json.contractFailures.map((f) => f.check))
+      .join(', ');
+    throw new Error(
+      \`Agent output failed contract on \${bad.length} item(s): \${reasons}\`
+    );
+  }
+}
+
+return checked;
 `;
 
 fs.writeFileSync('./n8n-code-node.js', header + core + '\n' + footer);

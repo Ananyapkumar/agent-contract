@@ -99,6 +99,39 @@ function similarity(a, b) {
   return shared / (A.size + B.size - shared);
 }
 
+// How many rows did a tool return? Returns null when the tool did not
+// say — we cannot count rows inside an opaque string, so the caller
+// stays quiet rather than guessing.
+//
+// Reads the { status, count, data } shape recommended by the n8n
+// community thread. A bare success flag is not enough here: a tool that
+// succeeded and returned nothing looks identical to one that succeeded
+// and returned ten rows unless it reports the count.
+function observedCount(observation) {
+  let obj = observation;
+
+  if (typeof observation === 'string') {
+    try {
+      obj = JSON.parse(observation);
+    } catch (e) {
+      return null; // opaque string, nothing to count
+    }
+  }
+
+  if (obj === null || typeof obj !== 'object') return null;
+
+  if (typeof obj.count === 'number') return obj.count;
+  if (Array.isArray(obj.data)) return obj.data.length;
+  if (Array.isArray(obj.results)) return obj.results.length;
+  if (Array.isArray(obj.rows)) return obj.rows.length;
+  if (Array.isArray(obj)) return obj.length;
+
+  // status: 'empty' is an explicit declaration of zero.
+  if (obj.status === 'empty') return 0;
+
+  return null;
+}
+
 // Anchored at the START of the observation on purpose. A customer
 // record might legitimately contain the word "error" somewhere in a
 // support ticket body; a tool failure announces itself up front.
@@ -207,6 +240,35 @@ const CHECKS = [
              + `${errored.join(', ')}.`;
       }
 
+      return null;
+    },
+  },
+
+  {
+    name: 'emptyCollection',
+    run(ctx) {
+      // Only applies to tools the contract DECLARES as returning a
+      // collection. A generic "output was empty" rule would fire on
+      // every lookup that legitimately found nothing.
+      const declared = ctx.contract.collectionTools || [];
+      if (declared.length === 0) return null;
+
+      const empty = [];
+
+      for (const step of ctx.steps) {
+        if (!step || !step.action) continue;
+        if (!declared.includes(step.action.tool)) continue;
+
+        // null means the tool did not report a count. We cannot infer
+        // one from an opaque string, so we stay quiet rather than guess.
+        if (observedCount(step.observation) === 0) empty.push(step.action.tool);
+      }
+
+      if (empty.length > 0) {
+        return `Tool(s) returned zero rows but the agent answered anyway: `
+             + `${empty.join(', ')}. Zero can be legitimate — watch the rate `
+             + `rather than treating every occurrence as fatal.`;
+      }
       return null;
     },
   },

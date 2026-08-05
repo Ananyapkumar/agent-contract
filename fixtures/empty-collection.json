@@ -1,0 +1,14 @@
+{
+  "_source": "Scenario raised by a member of the n8n community thread. A retrieval tool ran successfully and returned zero rows because of a stale filter condition upstream. The agent did the reasonable thing with an empty result set and said it did not have the information. Nothing threw. phantomTool passes because the tool IS present in intermediateSteps.",
+  "output": "{\"customer_name\": \"Unknown\", \"issue_summary\": \"I could not find any records matching that request.\", \"priority\": \"low\"}",
+  "intermediateSteps": [
+    {
+      "action": {
+        "tool": "search_orders",
+        "toolInput": { "customer_id": "8823" },
+        "log": "Searching for the customer's recent orders."
+      },
+      "observation": "{\"status\": \"empty\", \"count\": 0, \"data\": []}"
+    }
+  ]
+}
